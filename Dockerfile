@@ -1,15 +1,16 @@
-# Resume Matcher Docker Image - Railway Backend Only
-# 前端部署到 Vercel，Railway 只运行后端
+# Resume Matcher - Railway Backend Deployment
+# Only runs the backend API, frontend is deployed to Vercel
 
 FROM python:3.13-slim
 
+# Set environment variables
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     PIP_NO_CACHE_DIR=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=1 \
     PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
 
-# Install system dependencies
+# Install system dependencies for Playwright
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
     curl \
@@ -32,33 +33,27 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libgtk-3-0 \
     && rm -rf /var/lib/apt/lists/*
 
-WORKDIR /app
-
-# ============================================
-# Backend Setup
-# ============================================
-COPY apps/backend/pyproject.toml /app/backend/
-COPY apps/backend/app /app/backend/app
-
+# Set working directory
 WORKDIR /app/backend
+
+# Copy backend files
+COPY apps/backend/pyproject.toml .
+COPY apps/backend/app ./app
+
+# Install Python dependencies
 RUN pip install --no-cache-dir .
 
 # Install Playwright Chromium
 RUN python -m playwright install chromium --with-deps
 
-# ============================================
-# Data Directory
-# ============================================
+# Create data directory
 RUN mkdir -p /app/backend/data
 
-# ============================================
-# Backend Startup Script
-# ============================================
-WORKDIR /app/backend
+# Expose the backend port
+EXPOSE 8000
 
-# Railway will set PORT environment variable
-# Use it if available, otherwise default to 8000
+# Set default port (Railway will override this)
 ENV PORT=8000
 
-# Start backend directly
-CMD ["sh", "-c", "python -m uvicorn app.main:app --host 0.0.0.0 --port ${PORT}"]
+# Start the backend server
+CMD exec python -m uvicorn app.main:app --host 0.0.0.0 --port $PORT

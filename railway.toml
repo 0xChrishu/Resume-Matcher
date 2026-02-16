@@ -1,9 +1,9 @@
-# Railway 部署配置
+# Railway 部署配置 - Resume Matcher 后端
+# 前端部署到 Vercel
+
 [build]
 builder = "DOCKERFILE"
 dockerfilePath = "Dockerfile"
-
-# Dockerfile 已经包含 CMD 指令，不需要 startCommand
 
 # 配置持久化存储
 [volumes.data]
