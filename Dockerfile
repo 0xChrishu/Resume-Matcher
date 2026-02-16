@@ -1,34 +1,12 @@
-# Resume Matcher Docker Image
-# Optimized for Railway deployment
+# Resume Matcher Docker Image - Railway Backend Only
+# 前端部署到 Vercel，Railway 只运行后端
 
-# ============================================
-# Stage 1: Build Frontend
-# ============================================
-FROM node:22 AS frontend-builder
-
-ARG NEXT_PUBLIC_API_URL=http://localhost:8000
-ENV NEXT_TELEMETRY_DISABLED=1
-
-WORKDIR /app/frontend
-
-COPY apps/frontend/package*.json ./
-RUN npm ci
-
-COPY apps/frontend/ ./
-ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
-RUN npm run build
-
-# ============================================
-# Stage 2: Final Image (Railway Compatible)
-# ============================================
 FROM python:3.13-slim
 
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     PIP_NO_CACHE_DIR=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=1 \
-    NODE_ENV=production \
-    NEXT_TELEMETRY_DISABLED=1 \
     PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
 
 # Install system dependencies
@@ -52,8 +30,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libcairo2 \
     libatspi2.0-0 \
     libgtk-3-0 \
-    && curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
-    && apt-get install -y --no-install-recommends nodejs \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
@@ -67,31 +43,22 @@ COPY apps/backend/app /app/backend/app
 WORKDIR /app/backend
 RUN pip install --no-cache-dir .
 
-# Install Playwright Chromium as root (for Railway compatibility)
+# Install Playwright Chromium
 RUN python -m playwright install chromium --with-deps
-
-# ============================================
-# Frontend Setup
-# ============================================
-WORKDIR /app/frontend
-
-COPY --from=frontend-builder /app/frontend/.next/standalone ./
-COPY --from=frontend-builder /app/frontend/.next/static ./.next/static
-COPY --from=frontend-builder /app/frontend/public ./public
-
-# ============================================
-# Startup Script
-# ============================================
-COPY docker/start.sh /app/start.sh
-RUN sed -i 's/\r$//' /app/start.sh && chmod +x /app/start.sh
 
 # ============================================
 # Data Directory
 # ============================================
 RUN mkdir -p /app/backend/data
 
-# Expose ports
-EXPOSE 3000 8000
+# ============================================
+# Backend Startup Script
+# ============================================
+WORKDIR /app/backend
 
-# Start the application
-CMD ["/app/start.sh"]
+# Railway will set PORT environment variable
+# Use it if available, otherwise default to 8000
+ENV PORT=8000
+
+# Start backend directly
+CMD ["sh", "-c", "python -m uvicorn app.main:app --host 0.0.0.0 --port ${PORT}"]

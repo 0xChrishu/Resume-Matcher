@@ -5,8 +5,6 @@ dockerfilePath = "Dockerfile"
 
 [deploy]
 startCommand = "/app/start.sh"
-# 不使用 healthcheckPath，让 Railway 只检查容器是否运行
-# 避免调用 LLM API 导致的部署失败
 restartPolicyType = "ON_FAILURE"
 
 # 配置持久化存储
