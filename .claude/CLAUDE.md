@@ -14,6 +14,7 @@ Resume Matcher is an AI-powered application for tailoring resumes to job descrip
 | **Frontend** | Next.js 16 + React 19, Tailwind CSS v4 |
 | **Database** | TinyDB (JSON file storage) |
 | **PDF** | Headless Chromium via Playwright |
+| **Package Manager** | uv (Python), npm (Node.js 22+) |
 
 ---
 
@@ -50,6 +51,9 @@ npm run dev:frontend  # Next.js on :3000
 # Quality checks
 npm run lint          # Lint frontend
 npm run format        # Format with Prettier
+
+# Backend testing (from apps/backend/)
+uv run pytest         # Run Python tests
 
 # Build
 npm run build
@@ -136,6 +140,17 @@ data = copy.deepcopy(DEFAULT_DATA)  # Correct
 # data = DEFAULT_DATA  # Wrong - shared state bug
 ```
 
+### PDF Generation CSS Rule
+When modifying CSS, ensure the print media query in `apps/frontend/app/globals.css` preserves the whitelist for PDF generation:
+```css
+@media print {
+  body * { visibility: hidden !important; }
+  .resume-print, .resume-print * { visibility: visible !important; }
+  .cover-letter-print, .cover-letter-print * { visibility: visible !important; }
+}
+```
+PDF generation will fail without this whitelist.
+
 ---
 
 ## Design System Quick Reference
@@ -160,7 +175,8 @@ data = copy.deepcopy(DEFAULT_DATA)  # Correct
 Before completing a task:
 
 - [ ] Code compiles without errors
-- [ ] `npm run lint` passes
+- [ ] `npm run lint` passes (frontend)
+- [ ] `uv run pytest` passes (backend, if tests exist)
 - [ ] UI changes follow Swiss International Style
 - [ ] Python functions have type hints
 - [ ] Schema/prompt changes documented
