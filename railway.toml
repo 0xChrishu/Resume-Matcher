@@ -8,3 +8,8 @@ startCommand = "/app/start.sh"
 healthcheckPath = "/api/v1/health"
 healthcheckTimeout = 60
 restartPolicyType = "ON_FAILURE"
+
+# 配置持久化存储
+[[builds.volumes]]
+name = "data"
+mount = "/app/backend/data"
