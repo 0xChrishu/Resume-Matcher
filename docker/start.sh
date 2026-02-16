@@ -82,15 +82,15 @@ cd /app/backend
 python -m uvicorn app.main:app --host 0.0.0.0 --port ${BACKEND_PORT} &
 BACKEND_PID=$!
 
-# Wait for backend to be ready
+# Wait for backend to be ready (use root endpoint to avoid LLM API call)
 info "Waiting for backend to be ready..."
-for i in {1..60}; do
-    if curl -s "http://localhost:${BACKEND_PORT}/api/v1/health" > /dev/null 2>&1; then
+for i in {1..30}; do
+    if curl -s "http://localhost:${BACKEND_PORT}/" > /dev/null 2>&1; then
         status "Backend is ready (PID: $BACKEND_PID)"
         break
     fi
-    if [ $i -eq 60 ]; then
-        error "Backend failed to start within 60 seconds"
+    if [ $i -eq 30 ]; then
+        error "Backend failed to start within 30 seconds"
         exit 1
     fi
     sleep 1
