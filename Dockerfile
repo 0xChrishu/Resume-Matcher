@@ -56,4 +56,5 @@ EXPOSE 8000
 ENV PORT=8000
 
 # Start the backend server
-CMD exec python -m uvicorn app.main:app --host 0.0.0.0 --port $PORT
+# Use shell form for environment variable expansion
+CMD python -m uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}
