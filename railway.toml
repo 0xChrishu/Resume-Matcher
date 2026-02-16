@@ -10,6 +10,5 @@ healthcheckTimeout = 60
 restartPolicyType = "ON_FAILURE"
 
 # 配置持久化存储
-[[builds.volumes]]
-name = "data"
+[volumes.data]
 mount = "/app/backend/data"
